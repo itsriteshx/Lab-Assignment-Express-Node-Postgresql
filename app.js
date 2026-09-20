@@ -6,11 +6,27 @@ app.use(express.json())
 
 
 
-app.get("/test",async(req,res)=>{
-   const result= await pool.query("SELECT NOW()")
-    res.json(result.rows)
+// app.get("/test",async(req,res)=>{
+//    const result= await pool.query("SELECT NOW()")
+//     res.json(result.rows)
 
-})
+// })
+
+
+
+app.get("/assignments", async (req, res) => {
+    try {
+        const result=await pool.query(
+            "SELECT * FROM assignments ORDER BY id DESC"
+        );
+        res.json(result.rows);
+    } catch (err){
+        console.error(err);
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+});
 
 app.post("/assignments",async(req,res)=>{
     try{
