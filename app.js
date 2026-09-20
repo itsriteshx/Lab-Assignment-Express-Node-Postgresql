@@ -5,31 +5,6 @@ const app=express()
 app.use(express.json())
 
 
-
-// app.get("/test",async(req,res)=>{
-//    const result= await pool.query("SELECT NOW()")
-//     res.json(result.rows)
-
-// })
-
-
-
-app.get("/assignments", async (req, res) => {
-    try {
-        const result=await pool.query(
-            "SELECT * FROM assignments ORDER BY id DESC"
-        );
-        res.json(result.rows);
-    } catch (err){
-        console.error(err);
-        res.status(500).json({
-            message: "Server error"
-        });
-    }
-});
-
-
-
 app.post("/assignments",async(req,res)=>{
     try{
         const {title,deadline}=req.body;
@@ -46,6 +21,31 @@ app.post("/assignments",async(req,res)=>{
 
     }
 })
+
+app.get("/assignments",async(req,res)=>{
+    try{
+        const {submitted}=req.query;
+        if (submitted=="true"){
+            const result=await pool.query(
+              "SELECT * FROM assignments WHERE submitted = $1 ORDER BY id DESC",[true]
+            )
+             return res.json(result.rows); 
+        }
+        const result=await pool.query(
+            "SELECT * FROM assignments ORDER BY id DESC"
+        );
+        res.json(result.rows);
+
+
+    }catch(err){
+         console.error(err);
+        res.status(500).json({
+            message: "Server error"
+        });
+
+    }
+})
+
 
 
 app.patch("/assignments/:id",async(req,res)=>{
@@ -76,7 +76,7 @@ app.delete("/assignments/:id",async(req,res)=>{
         "DELETE FROM assignments WHERE id=$1 RETURNING *",[id]
     )
     if (result.rows.length==0){
-        return res.status(400).json({
+        return res.status(404).json({
             message: "Assignment not found"
         })
     }
@@ -94,6 +94,10 @@ app.delete("/assignments/:id",async(req,res)=>{
   
 
 })
+
+
+
+
 app.listen(3000,(req,res)=>{
     console.log("Server is Successfully Running on port 3000")
 })
